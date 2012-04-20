@@ -123,11 +123,13 @@ namespace cirno_say
 		int Text::y(){ return s.size(); }
 		void Text::setMaxX(int x)
 		{
+			if(x == -1)
+				return;
 			auto s_ = s;
 			s.clear();
 			for(auto line : s_)
 			{
-				for(auto c = line.begin(); c < line.end(); c += x)
+				for(auto c = line.begin(); c <= line.end(); c += x)
 					if(c + x < line.end())
 						s.push_back(std::vector<Char>(c, c + x));
 					else

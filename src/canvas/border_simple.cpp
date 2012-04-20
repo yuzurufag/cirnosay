@@ -8,6 +8,7 @@ namespace cirno_say
 	{
 		int BorderSimple::col(int x, int y)
 		{
+			int width = this->x();
 			if(x < arrow_size && y < arrow_position)
 				return -1;
 			if(x < arrow_size && y == arrow_position)
@@ -41,8 +42,8 @@ namespace cirno_say
 			this->bg = bg;
 			this->pad_x = 2;
 			this->pad_y = 1;
-			this->arrow_size = std::min(6, canvas->y()+2);
-			this->arrow_position = std::min(4, canvas->y() + 1);
+			this->arrow_size = 6;//std::min(6, canvas->y()+2);
+			this->arrow_position = 4;//std::min(4, canvas->y() + 1);
 			this->mirror = mirror;
 
 			this->width = canvas->x() + 2*pad_x + arrow_size + 4;
@@ -50,6 +51,7 @@ namespace cirno_say
 		}
 		Char BorderSimple::operator[](const std::pair<int, int> &c)
 		{
+			int width = this->x();
 			int x = mirror? width-c.first-1: c.first;
 			int y = c.second;
 			if(x < 0 || x >= width || y < 0 || y >= height)
@@ -66,7 +68,14 @@ namespace cirno_say
 			}
 			return Char::half_blocks(col(x, y*2), col(x, y*2+1));
 		}
-		int BorderSimple::x(){ return width; }
+		int BorderSimple::x(){ return (max_width != -1 && width>max_width)?max_width:width; }
 		int BorderSimple::y(){ return height; }
+		void BorderSimple::setMaxX(int x)
+		{
+			max_width = x;
+			canvas.setMaxX(x - 2*pad_x - arrow_size + 4);
+			this->width = canvas.x() + 2*pad_x + arrow_size + 4;
+			this->height = canvas.y() + 2 + 2*pad_y;
+		}
 	}
 }

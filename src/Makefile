@@ -2,7 +2,7 @@ LDFLAGS:=`pkg-config --libs imlib2`
 CDIR:='"'$(shell pwd|sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')'/"'
 CXXFLAGS:=-O3 -g -std=c++11 -Wall -DBUILD_DIR=${CDIR}
 
-CANVAS_OBJ=canvas/picture.o canvas/text.o canvas/border.o canvas/border_simple.o canvas/compose.o
+CANVAS_OBJ=canvas/picture.o canvas/text.o canvas/border_simple.o canvas/compose.o
 OBJ=cirnosay.o picture.o palette.o out.o char.o ${CANVAS_OBJ}
 
 cirnosay: ${OBJ}

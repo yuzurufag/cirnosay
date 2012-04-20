@@ -20,6 +20,8 @@ namespace cirno_say
 			Char operator[](const std::pair<int, int> &c);
 			int x();
 			int y();
+			void setMaxX(int x);
+			//void setMaxY(int y);
 		};
 	}
 }

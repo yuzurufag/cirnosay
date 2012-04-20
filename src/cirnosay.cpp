@@ -35,6 +35,7 @@ void help()
 	"  -l, --left               \n"
 	"  -r, --right              \n"
 	"  -s, --shift <x>x<y>      \n"
+	"  -w, --width <width>      \n"
 	"  -b, --background <color> \n"
 	"  -f, --foreground <color> \n"
 	"  -P, --show-palette       \n"
@@ -48,6 +49,7 @@ struct Config
 	int align = 0;
 	int bg = 7, fg = 0;
 	int x = 30, y = 9;
+	int width = -1;
 	std::string image_file = BUILD_DIR "../pictures/l_Touhoudex_Chibi_Cirno.png";
 	std::string palette_file = BUILD_DIR "../pal.png";
 };
@@ -64,13 +66,14 @@ int main(int argc, char **argv)
 			{"left",           no_argument,       0, 'l'},
 			{"right",          no_argument,       0, 'r'},
 			{"shift",          required_argument, 0, 's'},
+			{"width",          required_argument, 0, 'w'},
 			{"background",     required_argument, 0, 'b'},
 			{"foreground",     required_argument, 0, 'f'},
 			{"show-palette",   no_argument,       0, 'P'},
 			{"help",           no_argument,       0, 'h'},
 			{0, 0, 0, 0}
 		};
-		int c = getopt_long(argc, argv, "i:p:lrs:b:f:Ph", long_options, &option_index);
+		int c = getopt_long(argc, argv, "i:p:lrs:w:b:f:Ph", long_options, &option_index);
 		if(c == -1)
 			break;
 		int i = 0;
@@ -100,6 +103,9 @@ int main(int argc, char **argv)
 			case 's':
 				READ_INT(config.x, 'x');
 				READ_INT(config.y, 0);
+				break;
+			case 'w':
+				READ_INT(config.width, 0);
 				break;
 			case 'b':
 				READ_INT(config.bg, 0);
@@ -157,6 +163,6 @@ int main(int argc, char **argv)
 		result.canvas.push_back({0, config.y, &border});
 		result.canvas.push_back({border.x() - picture.x() + config.x, 0, &picture});
 	}
-
+	result.setMaxX(config.width);
 	std::cout << Out(result).to_s();
 }

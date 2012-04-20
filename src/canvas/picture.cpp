@@ -23,5 +23,11 @@ namespace cirno_say
 		{
 			return (picture.y()+1)/2;
 		}
+		void Picture::setMaxX(int x)
+		{
+		}
+		void Picture::setMaxY(int y)
+		{
+		}
 	}
 }

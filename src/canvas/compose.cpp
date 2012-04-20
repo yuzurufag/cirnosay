@@ -42,12 +42,28 @@ namespace cirno_say
 			}
 			return Char::half_blocks(t, b);
 		}
+		void Compose::setMaxX(int x)
+		{
+			x_ = x;
+			for (auto i: canvas)
+				if(x - i.x > 0)
+					i.c->setMaxX(x - i.x);
+		}
+		void Compose::setMaxY(int y)
+		{
+			y_ = y;
+			//for (auto i: canvas)
+			//	if(y - i.y > 0)
+			//		i.c->setMaxY(y - i.y);
+		}
 		int Compose::x()
 		{
 			int x = 0;
 			for (auto i: canvas)
 			{
 				int n = i.x + i.c->x();
+				if(n > x_ && x_ != -1)
+					return x_;
 				if(n > x)
 					x = n;
 			}
@@ -59,6 +75,8 @@ namespace cirno_say
 			for (auto i: canvas)
 			{
 				int n = i.y + i.c->y();
+				if(n > y_ && y_ != -1)
+					return y_;
 				if(n > y)
 					y = n;
 			}

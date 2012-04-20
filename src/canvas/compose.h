@@ -10,6 +10,8 @@ namespace cirno_say
 	{
 		class Compose:public Canvas
 		{
+			int x_ = -1;
+			int y_ = -1;
 			public:
 			struct Element
 			{
@@ -19,6 +21,8 @@ namespace cirno_say
 			std::vector<Element> canvas;
 			Compose();
 			Char operator[](const std::pair<int, int> &c);
+			void setMaxX(int x);
+			void setMaxY(int y);
 			int x();
 			int y();
 		};

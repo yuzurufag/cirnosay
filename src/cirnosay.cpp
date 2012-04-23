@@ -11,6 +11,19 @@
 #include "out.h"
 #include "palette.h"
 #include "picture.h"
+#include "utils.h"
+
+struct Config
+{
+	enum {HELP, PALETTE, SAY, NOTHING} action;
+	enum {LEFT, RIGHT} align = LEFT;
+	int bg = 7, fg = 0;
+	int x = 30, y = 9;
+	int width = -1;
+	std::wstring text;
+	std::string image_file = BUILD_DIR "../pictures/l_Touhoudex_Chibi_Cirno.png";
+	std::string palette_file = BUILD_DIR "../pal.png";
+};
 
 void show_palette()
 {
@@ -23,10 +36,9 @@ void show_palette()
 		std::cout << "\e[m\n";
 	}
 	std::cout << "\n\n";
-	exit(0);
 }
 
-void help()
+void show_help()
 {
 	std::cout <<
 	"Usage: cirnosay [option...] [text]\n"
@@ -40,21 +52,9 @@ void help()
 	"  -f, --foreground <color> \n"
 	"  -P, --show-palette       \n"
 	"  -h, --help               \n";
-
-	exit(0);
 }
 
-struct Config
-{
-	int align = 0;
-	int bg = 7, fg = 0;
-	int x = 30, y = 9;
-	int width = -1;
-	std::string image_file = BUILD_DIR "../pictures/l_Touhoudex_Chibi_Cirno.png";
-	std::string palette_file = BUILD_DIR "../pal.png";
-};
-
-int main(int argc, char **argv)
+Config configure(int argc, char **argv)
 {
 	Config config;
 	while(1)
@@ -77,92 +77,104 @@ int main(int argc, char **argv)
 		if(c == -1)
 			break;
 		int i = 0;
-		#define READ_INT(x, end) do {\
-			x = 0; \
-			int s = optarg[i] == '-'?-1:1; \
-			if(optarg[i] == '-') i++; \
-			for(; optarg[i] >= '0' && optarg[i] <= '9'; i++) \
-				x = x*10 + s*(optarg[i] - '0'); \
-			if(optarg[i++] != end) \
-				help(); \
+		#define ARG_ASSERT(x, name) do { \
+				if(!(x)) \
+				{ \
+					std::cerr << argv[0] << ": " << optarg << ": invalid " << name << " argument\n"; \
+					config.action = Config::NOTHING; \
+					return config; \
+				} \
+			} while(0)
+		#define READ_INT(x, end, name) do { \
+				x = 0; \
+				int s = optarg[i] == '-'?-1:1; \
+				if(optarg[i] == '-') i++; \
+				for(; optarg[i] >= '0' && optarg[i] <= '9'; i++) \
+					x = x*10 + s*(optarg[i] - '0'); \
+				ARG_ASSERT(optarg[i++] == end, name); \
 			} while(0)
 		switch(c)
 		{
-			case 'i':
-				config.image_file = optarg;
-				break;
-			case 'p':
-				config.palette_file = optarg;
-				break;
-			case 'l':
-				config.align = 0;
-				break;
-			case 'r':
-				config.align = 1;
-				break;
+			case 'i': config.image_file   = optarg; break;
+			case 'p': config.palette_file = optarg; break;
+			case 'l': config.align = Config::LEFT;  break;
+			case 'r': config.align = Config::RIGHT; break;
 			case 's':
-				READ_INT(config.x, 'x');
-				READ_INT(config.y, 0);
+				READ_INT(config.x, 'x', "shift");
+				READ_INT(config.y,  0,  "shift");
 				break;
 			case 'w':
-				READ_INT(config.width, 0);
+				READ_INT(config.width, 0, "width");
+				ARG_ASSERT(config.width >= -1, "width");
 				break;
 			case 'b':
-				READ_INT(config.bg, 0);
+				READ_INT(config.bg, 0, "background");
+				ARG_ASSERT(config.bg >= -1 && config.bg < 256, "background");
 				break;
 			case 'f':
-				READ_INT(config.fg, 0);
+				READ_INT(config.fg, 0, "foreground");
+				ARG_ASSERT(config.fg >= -1 && config.fg < 256, "foreground");
 				break;
 			case 'P':
-				show_palette();
+				config.action = Config::PALETTE;
+				return config;
 			case 'h':
-				help();
+				config.action = Config::HELP;
+				return config;
 			default:
-				help();
+				config.action = Config::NOTHING;
+				return config;
 		}
+		#undef ARG_ASSERT
 		#undef READ_INT
 	}
-	using namespace cirno_say;
-	Palette palette(config.palette_file);
 
-	canvas::Picture picture(config.image_file, palette);
-
-	std::wstring text_str;
 	if (optind < argc)
-	{
-		setlocale(LC_ALL, "");
-		std::string s = argv[optind];
-		for(int i = optind+1; i < argc; i++)
-			s += std::string(" ") + argv[i];
-		wchar_t *buf = new wchar_t[ s.size() ];
-		size_t num_chars = mbstowcs(buf, s.c_str(), s.size() );
-		text_str = std::wstring( buf, num_chars );
-		delete[] buf;
-	}
+		config.text = cirno_say::concat_cstrings(argv + optind);
 	else
-	{
-		setlocale(LC_ALL, "");
-		std::wcin >> std::noskipws;
-		std::istream_iterator<wchar_t, wchar_t> it(std::wcin);
-		std::istream_iterator<wchar_t, wchar_t> end;
-		text_str = std::wstring(it, end);
-	}
+		config.text = cirno_say::read_stdin();
 
-	canvas::Text text = canvas::Text::from_wstring(text_str);
-	canvas::BorderSimple border(&text, config.fg, config.bg, config.align);
+	config.action = Config::SAY;
 
+	return config;
+}
+
+void say(const Config &config)
+{
+	using namespace cirno_say;
+
+	Palette palette(config.palette_file);
+	canvas::Picture picture(config.image_file, palette);
+	canvas::Text text_canvas = canvas::Text::from_wstring(config.text);
+	canvas::BorderSimple border(&text_canvas, config.fg, config.bg, config.align);
 	canvas::Compose result;
-	if(config.align == 0)
+
+	if(config.align == Config::LEFT)
 	{
-		
-		result.canvas.push_back({config.x, config.y, &border});
+		if(config.text.size())
+			result.canvas.push_back({config.x, config.y, &border});
 		result.canvas.push_back({0, 0, &picture});
 	}
 	else
 	{
-		result.canvas.push_back({0, config.y, &border});
+		if(config.text.size())
+			result.canvas.push_back({0, config.y, &border});
 		result.canvas.push_back({border.x() - picture.x() + config.x, 0, &picture});
 	}
 	result.setMaxX(config.width);
+
 	std::cout << Out(result).to_s();
+}
+
+int main(int argc, char **argv)
+{
+	setlocale(LC_ALL, "");
+	Config config = configure(argc, argv);
+	switch(config.action)
+	{
+		case Config::HELP:    show_help();             break;
+		case Config::PALETTE: show_palette();          break;
+		case Config::SAY:     say(config);             break;
+		case Config::NOTHING: break;
+	}
 }

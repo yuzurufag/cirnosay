@@ -19,6 +19,7 @@ namespace cirno_say
 		private:
 		void color(int b, int f);
 		void put_pixels(int a, int b);
+		void put_wchar_t(const wchar_t &c);
 		void nl();
 	};
 }

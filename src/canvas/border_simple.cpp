@@ -42,8 +42,8 @@ namespace cirno_say
 			this->bg = bg;
 			this->pad_x = 2;
 			this->pad_y = 1;
-			this->arrow_size = 6;//std::min(6, canvas->y()+2);
-			this->arrow_position = 4;//std::min(4, canvas->y() + 1);
+			this->arrow_size = std::min(6, canvas->y()+2);
+			this->arrow_position = std::min(4, canvas->y() + 1);
 			this->mirror = mirror;
 
 			this->width = canvas->x() + 2*pad_x + arrow_size + 4;
@@ -74,6 +74,10 @@ namespace cirno_say
 		{
 			max_width = x;
 			canvas.setMaxX(x - 2*pad_x - arrow_size + 4);
+
+			this->arrow_size = std::min(6, canvas.y()+2);
+			this->arrow_position = std::min(4, canvas.y() + 1);
+
 			this->width = canvas.x() + 2*pad_x + arrow_size + 4;
 			this->height = canvas.y() + 2 + 2*pad_y;
 		}

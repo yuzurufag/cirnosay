@@ -13,6 +13,7 @@ namespace cirno_say
 		}
 		return {t, b, WCHAR_UPPER_HALF_BLOCK};
 	}
+
 	Char Char::empty()
 	{
 		return {-1, -1, L' '};

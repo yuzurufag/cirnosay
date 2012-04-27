@@ -18,6 +18,8 @@ namespace cirno_say
 		std::string to_s();
 		private:
 		void color(int b, int f);
+		std::string color_bg(int b);
+		std::string color_fg(int f);
 		void put_pixels(int a, int b);
 		void put_wchar_t(const wchar_t &c);
 		void nl();

@@ -11,7 +11,7 @@ namespace cirno_say
 			int spaces = 0;
 			for(int x = 0; x < i.x(); x++)
 			{
-				Char c = i[std::pair<int, int>(x,y)];
+				Char c = i.getChar(x,y);
 				if(c.c == L' ' && c.bg == -1)
 					spaces++;
 				else

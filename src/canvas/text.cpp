@@ -65,9 +65,11 @@ namespace cirno_say
 									else if(i >= 30 && i <= 37)
 										fg = i-30;
 									else if(i >= 90 && i <= 97)
-										fg = i-90+3;
+										fg = i-90+8;
 									else if(i >= 40 && i <= 47)
-										fg = i-40;
+										bg = i-40;
+									else if(i >= 100 && i <= 107)
+										bg = i-100+8;
 									else if(i == 38)
 										xterm_mode = 1;
 									else if(i == 48)
@@ -109,10 +111,8 @@ namespace cirno_say
 			}
 			return Text(result);
 		}
-		Char Text::operator[](const std::pair<int, int> &c)
+		Char Text::getChar(int x, int y)
 		{
-			int x = c.first;
-			int y = c.second;
 			if((y < 0) || ((size_t)y >= s.size()))
 				return Char::empty();
 			if((x < 0) || ((size_t)x >= s[y].size()))

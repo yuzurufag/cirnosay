@@ -20,7 +20,7 @@ namespace cirno_say
 			int col(int x, int y);
 			public:
 			BorderSimple(Canvas *canvas, int fg, int bg, bool mirror);
-			Char operator[](const std::pair<int, int> &c);
+			Char getChar(int x, int y);
 			int x();
 			int y();
 			void setMaxX(int x);

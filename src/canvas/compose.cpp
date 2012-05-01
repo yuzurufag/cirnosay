@@ -7,14 +7,12 @@ namespace cirno_say
 		Compose::Compose()
 		{
 		}
-		Char Compose::operator[](const std::pair<int, int> &c)
+		Char Compose::getChar(int x, int y)
 		{
-			int x = c.first;
-			int y = c.second;
 			int t = -1, b = -1;
 			for (auto i: canvas)
 			{
-				Char c = (*i.c)[std::pair<int, int>(x - i.x, y - i.y)];
+				Char c = i.c->getChar(x - i.x, y - i.y);
 				if(t != -1 && b == -1)
 				{
 					if(c.c == WCHAR_LOWER_HALF_BLOCK || c.c == WCHAR_FULL_BLOCK)

@@ -17,7 +17,7 @@ namespace cirno_say
 			Text();
 			Text(std::vector<std::vector<Char> > s);
 			static Text from_wstring(const std::wstring &s);
-			Char operator[](const std::pair<int, int> &c);
+			Char getChar(int x, int y);
 			int x();
 			int y();
 			void setMaxX(int x);

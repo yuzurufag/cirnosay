@@ -12,10 +12,11 @@ namespace cirno_say
 	{
 		class Picture : public Canvas
 		{
+			bool mirror;
 			cirno_say::Picture picture;
 			public:
-			Picture(std::string file_name, const Palette &palette);
-			Char operator[](const std::pair<int, int> &c);
+			Picture(std::string file_name, const Palette &palette, bool mirror);
+			Char getChar(int x, int y);
 			int x();
 			int y();
 			void setMaxX(int x);

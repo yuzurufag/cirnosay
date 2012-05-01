@@ -49,11 +49,10 @@ namespace cirno_say
 			this->width = canvas->x() + 2*pad_x + arrow_size + 4;
 			this->height = canvas->y() + 2 + 2*pad_y;
 		}
-		Char BorderSimple::operator[](const std::pair<int, int> &c)
+		Char BorderSimple::getChar(int x, int y)
 		{
 			int width = this->x();
-			int x = mirror? width-c.first-1: c.first;
-			int y = c.second;
+			x = mirror? width-x-1: x;
 			if(x < 0 || x >= width || y < 0 || y >= height)
 				return Char::empty();
 			if(x >= arrow_size + pad_x + 2 && x < width - pad_x - 2 &&
@@ -61,7 +60,7 @@ namespace cirno_say
 			{
 				if(mirror)
 					x = width - x - 1 + arrow_size;	
-				Char result = canvas[std::pair<int, int>(x - arrow_size - pad_x - 2, y - pad_y - 1)];
+				Char result = canvas.getChar(x - arrow_size - pad_x - 2, y - pad_y - 1);
 				result.fg = result.fg==-1 ? fg : result.fg;
 				result.bg = result.bg==-1 ? bg : result.bg;
 				return result;

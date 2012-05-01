@@ -20,7 +20,7 @@ namespace cirno_say
 			};
 			std::vector<Element> canvas;
 			Compose();
-			Char operator[](const std::pair<int, int> &c);
+			Char getChar(int x, int y);
 			void setMaxX(int x);
 			void setMaxY(int y);
 			int x();

@@ -11,7 +11,7 @@ namespace cirno_say
 		class Canvas
 		{
 			public:
-			virtual Char operator[](const std::pair<int, int> &c) = 0;
+			virtual Char getChar(int x, int y) = 0;
 			virtual void setMaxX(int x) = 0;
 			//virtual void setMaxY(int y) = 0;
 			virtual int x() = 0;

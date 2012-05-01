@@ -1,0 +1,70 @@
+#!/bin/bash
+
+PICTURES=(
+	http://en.touhouwiki.net/images/c/c0/Touhoudex_Cirno.png
+	http://en.touhouwiki.net/images/3/3c/Touhoudex_Chibi_Cirno.png
+	http://en.touhouwiki.net/images/8/88/Touhoudex_EX_Cirno.png
+)
+
+escape()
+{
+	A="$1"
+	A=${A//\\/\\\\}
+	A=${A//\"/\\\"}
+	A=${A//\$/\\\$}
+	printf '%s\n' "$A"
+}
+
+pictures_make()
+{
+	echo -e ".PHONY: all install uninstall clean\n"
+
+	echo -n "all: "
+	for URL in "${PICTURES[@]}";do
+		NAME="$(basename "$URL")"
+		echo -n "$NAME" ""
+	done
+	echo -e "\n"
+
+	for URL in "${PICTURES[@]}";do
+		NAME="$(basename "$URL")"
+		echo    "$NAME:"
+		echo -e "\twget" "$URL"
+		echo -e "\tconvert" "$NAME" -filter Box -resize 64 -trim -flop "$NAME"
+		echo
+	done
+
+	echo "clean:"
+	for URL in "${PICTURES[@]}";do
+		NAME="$(basename "$URL")"
+		echo -e "\trm" -f "$NAME"
+	done
+}
+
+dirs_make()
+{
+	echo -n "DATA_DIR:="
+	escape "$DATA_DIR"
+
+	echo -n "BIN_DIR:="
+	escape "$BIN_DIR"
+
+	echo -n "IN_PLACE:=$IN_PLACE"
+}
+
+if [ "$#" -eq 0 ];then
+	DATA_DIR="$(pwd)/data"
+	BIN_DIR="$(pwd)/src"
+	IN_PLACE="1"
+elif [[ "$#" -eq 1 && "$1" =~ --prefix(.*) ]];then
+	PREFIX="${1/--prefix=/}"
+	DATA_DIR="$PREFIX/share/cirnosay"
+	BIN_DIR="$PREFIX/bin"
+	IN_PLACE="0"
+else
+	printf "%s\n" "$0 [--prefix=<prefix>]"
+	exit 0
+fi
+
+dirs_make > dirs.mk
+pictures_make > data/pictures/Makefile

@@ -8,6 +8,7 @@
 #include "canvas/compose.h"
 #include "canvas/picture.h"
 #include "canvas/text.h"
+#include "findfile.h"
 #include "out.h"
 #include "palette.h"
 #include "picture.h"
@@ -15,15 +16,26 @@
 
 struct Config
 {
-	enum {HELP, PALETTE, SAY, NOTHING} action;
+	enum {HELP, PALETTE, SAY, LIST, NOTHING} action;
 	enum {LEFT, RIGHT} align = LEFT;
+	bool mirror = false;
 	int bg = 7, fg = 0;
 	int x = 30, y = 9;
 	int width = -1;
 	std::wstring text;
-	std::string image_file = BUILD_DIR "../pictures/l_Touhoudex_Chibi_Cirno.png";
-	std::string palette_file = BUILD_DIR "../pal.png";
+	cirno_say::FindFile image_file = cirno_say::FindFile(DATA_DIR "/pictures/", "png", "Touhoudex_Chibi_Cirno");
+	cirno_say::FindFile palette_file = cirno_say::FindFile(DATA_DIR "/palettes/", "png", "xterm");
 };
+
+void list(const Config &config)
+{
+	std::cout << "Images:\n";
+	for(auto i: config.image_file.list())
+		std::cout << "  " << i << std::endl;
+	std::cout << "Palettes:\n";
+	for(auto i: config.palette_file.list())
+		std::cout << "  " << i << std::endl;
+}
 
 void show_palette()
 {
@@ -42,21 +54,28 @@ void show_help()
 {
 	std::cout <<
 	"Usage: cirnosay [option...] [text]\n"
-	"  -i, --image <image>      \n"
-	"  -p, --palette <palette>  \n"
-	"  -l, --left               \n"
-	"  -r, --right              \n"
-	"  -s, --shift <x>x<y>      \n"
-	"  -w, --width <width>      \n"
-	"  -b, --background <color> \n"
-	"  -f, --foreground <color> \n"
-	"  -P, --show-palette       \n"
-	"  -h, --help               \n";
+	"  -i, --image <xxx>         use <xxx> as image\n"
+	"  -p, --palette <xxx>       use <xxx> as palette\n"
+	"  -l, --left                align left\n"
+	"  -r, --right               align right\n"
+	"  -m, --mirror              flip image\n"
+	"  -s, --shift <x>x<y>       relative position of text balloon\n"
+	"  -w, --width <width>       output width\n"
+	"  -b, --background <color>  background color of text balloon\n"
+	"  -f, --foreground <color>  foreground color of text balloon\n"
+	"  -L, --list                list available images/palettes and exit\n"
+	"  -P, --show-palette        display palette and exit\n"
+	"  -h, --help                display this help and exit\n";
 }
 
 Config configure(int argc, char **argv)
 {
 	Config config;
+	try
+	{
+		config.palette_file = getenv("COLORTERM");
+	}
+	catch(...){}
 	while(1)
 	{
 		int option_index = 0;
@@ -65,15 +84,17 @@ Config configure(int argc, char **argv)
 			{"palette",        required_argument, 0, 'p'},
 			{"left",           no_argument,       0, 'l'},
 			{"right",          no_argument,       0, 'r'},
+			{"mirror",         no_argument,       0, 'm'},
 			{"shift",          required_argument, 0, 's'},
 			{"width",          required_argument, 0, 'w'},
 			{"background",     required_argument, 0, 'b'},
 			{"foreground",     required_argument, 0, 'f'},
+			{"list",           no_argument,       0, 'L'},
 			{"show-palette",   no_argument,       0, 'P'},
 			{"help",           no_argument,       0, 'h'},
 			{0, 0, 0, 0}
 		};
-		int c = getopt_long(argc, argv, "i:p:lrs:w:b:f:Ph", long_options, &option_index);
+		int c = getopt_long(argc, argv, "i:p:lrms:w:b:f:PLh", long_options, &option_index);
 		if(c == -1)
 			break;
 		int i = 0;
@@ -95,10 +116,21 @@ Config configure(int argc, char **argv)
 			} while(0)
 		switch(c)
 		{
-			case 'i': config.image_file   = optarg; break;
-			case 'p': config.palette_file = optarg; break;
+			case 'i':
+				try
+					{ config.image_file   = optarg; }
+				catch(...)
+					{ ARG_ASSERT(false, "image"); }
+				break;
+			case 'p':
+				try
+					{ config.palette_file = optarg; }
+				catch(...)
+					{ ARG_ASSERT(false, "palette"); }
+				break;
 			case 'l': config.align = Config::LEFT;  break;
 			case 'r': config.align = Config::RIGHT; break;
+			case 'm': config.mirror = true;         break;
 			case 's':
 				READ_INT(config.x, 'x', "shift");
 				READ_INT(config.y,  0,  "shift");
@@ -115,6 +147,9 @@ Config configure(int argc, char **argv)
 				READ_INT(config.fg, 0, "foreground");
 				ARG_ASSERT(config.fg >= -1 && config.fg < 256, "foreground");
 				break;
+			case 'L':
+				config.action = Config::LIST;
+				return config;
 			case 'P':
 				config.action = Config::PALETTE;
 				return config;
@@ -142,9 +177,8 @@ Config configure(int argc, char **argv)
 void say(const Config &config)
 {
 	using namespace cirno_say;
-
-	Palette palette(config.palette_file);
-	canvas::Picture picture(config.image_file, palette);
+	Palette palette(config.palette_file.getValue());
+	canvas::Picture picture(config.image_file.getValue(), palette, config.mirror);
 	canvas::Text text_canvas = canvas::Text::from_wstring(config.text);
 	canvas::BorderSimple border(&text_canvas, config.fg, config.bg, config.align);
 	canvas::Compose result;
@@ -172,9 +206,10 @@ int main(int argc, char **argv)
 	Config config = configure(argc, argv);
 	switch(config.action)
 	{
-		case Config::HELP:    show_help();             break;
-		case Config::PALETTE: show_palette();          break;
-		case Config::SAY:     say(config);             break;
+		case Config::HELP:    show_help();    break;
+		case Config::PALETTE: show_palette(); break;
+		case Config::LIST:    list(config);   break;
+		case Config::SAY:     say(config);    break;
 		case Config::NOTHING: break;
 	}
 }

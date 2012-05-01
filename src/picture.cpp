@@ -29,11 +29,11 @@ namespace cirno_say
 	{
 		delete[] i;
 	}
-	int Picture::operator[](const std::pair<int, int> &c)
+	int Picture::getPixel(int x, int y)
 	{
-		if ((c.first < 0) || (c.first >= x_) || (c.second < 0) || (c.second >= y_))
+		if(x < 0 || x >= x_ || y < 0 || y >= y_)
 			return -1;
-		return i[c.first + c.second*x_];
+		return i[x + y*x_];
 	}
 	int Picture::x(){ return x_; }
 	int Picture::y(){ return y_; }

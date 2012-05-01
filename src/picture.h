@@ -14,7 +14,7 @@ namespace cirno_say
 		public:
 		Picture(std::string file_name, const Palette &palette);
 		~Picture();
-		int operator[](const std::pair<int, int> &c);
+		int getPixel(int x, int y);
 		int x();
 		int y();
 	};

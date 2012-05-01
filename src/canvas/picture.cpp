@@ -6,13 +6,16 @@ namespace cirno_say
 {
 	namespace canvas
 	{
-		Picture::Picture(std::string file_name, const Palette &palette):picture(file_name, palette)
+		Picture::Picture(std::string file_name, const Palette &palette, bool mirror):picture(file_name, palette)
 		{
+			this->mirror = mirror;
 		}
-		Char Picture::operator[](const std::pair<int, int> &c)
+		Char Picture::getChar(int x, int y)
 		{
-			int c1 = picture[std::pair<int, int>(c.first, c.second*2)];
-			int c2 = picture[std::pair<int, int>(c.first, c.second*2+1)];
+			if(mirror)
+				x = picture.x() - 1 - x;
+			int c1 = picture.getPixel(x, y*2);
+			int c2 = picture.getPixel(x, y*2+1);
 			return Char::half_blocks(c1, c2);
 		}
 		int Picture::x()

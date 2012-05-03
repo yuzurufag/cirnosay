@@ -4,7 +4,8 @@ namespace cirno_say
 {
 	Out::Out(canvas::Canvas &i)
 	{
-		b_ = f_ = -1;
+		bg_ = fg_ = -1;
+		bold_ = underline_ = false;
 		for(int y = 0; y < i.y(); y++)
 		{
 			std::vector<Char> line;
@@ -17,27 +18,13 @@ namespace cirno_say
 				else
 				{
 					for(int i = 0; i < spaces; i++)
-						line.push_back(Char::empty());
+						line.push_back(Char());
 					spaces = 0;
 					line.push_back(c);
 				}
 			}
 			for(auto c : line)
-			{
-				if(c.c == L' ')
-					put_pixels(c.bg, c.bg);
-				else if(c.c == WCHAR_LOWER_HALF_BLOCK)
-					put_pixels(c.bg, c.fg);
-				else if(c.c == WCHAR_UPPER_HALF_BLOCK)
-					put_pixels(c.fg, c.bg);
-				else if(c.c == WCHAR_FULL_BLOCK)
-					put_pixels(c.fg, c.fg);
-				else
-				{
-					color(c.bg, c.fg);
-					put_wchar_t(c.c);
-				}
-			}
+				put(c);
 			nl();
 		}
 	}
@@ -47,123 +34,130 @@ namespace cirno_say
 		return out.str();
 	}
 
-	void Out::color(int b, int f)
+	void Out::put_raw(int bg, int fg, int bold, int underline, wchar_t c)
 	{
-		if(f == -1 && b == -1)
+		std::vector<int> result;
+		if((fg == -1 && fg_ != -1) || (bg == -1 && bg_ != -1))
 		{
-			if(b_ != f_ || b_ != -1)
-				out << "\e[m";
+			result.push_back(0);
+			fg_ = bg_ = -1;
+			bold_ = underline_ = false;
 		}
-		else if(b == -1)
-		{
-			if(b_ == -1)
-			{
-				if(f_ != f)
-					out << "\e[" << color_fg(f) << "m";
-			}
-			else
-				out << "\e[0;" << color_fg(f) << "m";
-		}
-		else if(f == -1)
-		{
-			if(f_ == -1)
-			{
-				if(b_ != b)
-					out << "\e[" << color_bg(b) << "m";
-			}
-			else
-				out << "\e[0;" << color_bg(b) << "m";
-		}
-		else
-		{
-			if(f_ == f && b_ == b);
-			else if(b_ == b)
-				out << "\e[" << color_fg(f) << "m";
-			else if(f_ == f)
-				out << "\e[" << color_bg(b) << "m";
-			else
-				out << "\e[" << color_bg(b) << ";" << color_fg(f) << "m";
-		}
-		b_ = b;
-		f_ = f;
-	}
 
-	std::string Out::color_fg(int f)
-	{
-		std::stringstream result;
-		if(f < 8)
-			result << 30+f;
-		else if(f < 16)
-			result << 90-8+f;
-		else
-			result << "38;5;" << f;
-		return result.str();
-	}
-
-	std::string Out::color_bg(int b)
-	{
-		std::stringstream result;
-		if(b < 8)
-			result << 40+b;
-		else if(b < 16)
-			result << 100-8+b;
-		else
-			result << "48;5;" << b;
-		return result.str();
-	}
-
-	void Out::put_pixels(int a, int b)
-	{
-		if(a == -1 && b == -1)
+		if(bg != -2 && bg != bg_)
 		{
-			color(a, f_);
-			put_wchar_t(L' ');
-		}
-		else if(a == -1)
-		{
-			color(a, b);
-			put_wchar_t(WCHAR_LOWER_HALF_BLOCK);
-		}
-		else if(b == -1)
-		{
-			color(b, a);
-			put_wchar_t(WCHAR_UPPER_HALF_BLOCK);
-		}
-		else
-		{
-			if(a == b)
-			{
-				if(a == f_)
-					put_wchar_t(WCHAR_FULL_BLOCK);
-				else
-				{
-					color(a, f_);
-					put_wchar_t(L' ');
-				}
-			}
-			else if(a == f_ && b == b_)
-				put_wchar_t(WCHAR_UPPER_HALF_BLOCK);
-			else if(a == b_ && b == f_)
-				put_wchar_t(WCHAR_LOWER_HALF_BLOCK);
+			if(bg < 8)
+				result.push_back(40 + bg);
+			else if(bg < 16)
+				result.push_back(100 - 8 + bg);
 			else
 			{
-				color(a, b);
-				put_wchar_t(WCHAR_LOWER_HALF_BLOCK);
+				result.push_back(48);
+				result.push_back(5);
+				result.push_back(bg);
 			}
 		}
-	}
 
-	void Out::put_wchar_t(const wchar_t &c)
-	{
+		if(fg != -2 && fg != fg_)
+		{
+			if(fg < 8)
+				result.push_back(30 + fg);
+			else if(fg < 16)
+				result.push_back(90 - 8 + fg);
+			else
+			{
+				result.push_back(38);
+				result.push_back(5);
+				result.push_back(fg);
+			}
+		}
+
+		if(bold != -2 && bold != bold_)
+			result.push_back(bold?1:22);
+
+		if(underline != -2 && underline != underline_)
+			result.push_back(underline?4:24);
+
+		if(!result.empty())
+		{
+			out << "\e[";
+			bool first = true;
+			for(int i: result)
+			{
+				if(!first)
+					out << ";";
+				if(i != 0)
+					out << i;
+				first = false;
+			}
+			out << "m";
+		}
+
 		char c_[5] = {0};
 		wchar_t wc[2] = {c, 0};
 		wcstombs(c_, wc, 4);
 		out << c_;
+
+		if(bg != -2)
+			bg_ = bg;
+		if(fg != -2)
+			fg_ = fg;
+		if(bold != -2)
+			bold_ = bold == 1;
+		if(underline != -2)
+			underline_ = underline == 1;
+	}
+
+	void Out::put(Char &c)
+	{
+		if(c.c == WCHAR_LOWER_HALF_BLOCK || c.c == WCHAR_UPPER_HALF_BLOCK)
+		{
+			c.bg = c.bg == -1? Char::TRANSPARENT: c.bg;
+			c.fg = c.fg == -1? Char::DEFAULT: c.fg;
+			int t = c.c == WCHAR_LOWER_HALF_BLOCK? c.bg: c.fg;
+			int b = c.c == WCHAR_LOWER_HALF_BLOCK? c.fg: c.bg;
+			int td = t>=0? t: -1;
+			int bd = b>=0? b: -1;
+			if(t == Char::TRANSPARENT)
+				put_raw(-1, bd, c.bold, c.underline, WCHAR_LOWER_HALF_BLOCK);
+			else if(b == Char::TRANSPARENT)
+				put_raw(-1, td, c.bold, c.underline, WCHAR_UPPER_HALF_BLOCK);
+			else if(t == Char::DEFAULT)
+				put_raw(bd, -1, c.bold, c.underline, WCHAR_UPPER_HALF_BLOCK);
+			else if(b == Char::DEFAULT)
+				put_raw(td, -1, c.bold, c.underline, WCHAR_LOWER_HALF_BLOCK);
+
+			else if(b == t && bg_ == b)
+				put_raw(-2, -2, c.bold, c.underline, L' ');
+			else if(b == t && fg_ == b)
+				put_raw(-2, -2, c.bold, c.underline, WCHAR_FULL_BLOCK);
+			else if(b == t)
+				put_raw(b, -2, c.bold, c.underline, L' ');
+			else if(bg_ == b || fg_ == t)
+				put_raw(b, t, c.bold, c.underline, WCHAR_UPPER_HALF_BLOCK);
+			else if(fg_ == b || bg_ == t)
+				put_raw(t, b, c.bold, c.underline, WCHAR_LOWER_HALF_BLOCK);
+			else
+				put_raw(t, b, c.bold, c.underline, WCHAR_LOWER_HALF_BLOCK);
+		}
+		else if(c.c == WCHAR_FULL_BLOCK)
+		{
+			if(c.fg != -1)
+				put_raw(c.fg, -2, c.bold, c.underline, L' ');
+			else
+				put_raw(-2, -1, c.bold, c.underline, WCHAR_FULL_BLOCK);
+		}
+		else
+		{
+			bool space = c.c == L' ';
+			put_raw(c.bg, space?-2:c.fg, space?-2:c.bold, c.underline, c.c);
+		}
 	}
 
 	void Out::nl()
 	{
-		color(-1, -1);
-		out << "\n";
+		fg_ = bg_ = -1;
+		bold_ = false;
+		out << "\e[m\n";
 	}
 }

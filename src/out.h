@@ -11,17 +11,14 @@ namespace cirno_say
 	class Out
 	{
 		std::stringstream out;
-		int b_;
-		int f_;
+		int bg_, fg_;
+		bool bold_, underline_;
 		public:
 		Out(canvas::Canvas &i);
 		std::string to_s();
 		private:
-		void color(int b, int f);
-		std::string color_bg(int b);
-		std::string color_fg(int f);
-		void put_pixels(int a, int b);
-		void put_wchar_t(const wchar_t &c);
+		void put_raw(int bg, int fg, int bold, int underline, wchar_t c);
+		void put(Char &c);
 		void nl();
 	};
 }

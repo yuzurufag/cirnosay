@@ -19,7 +19,7 @@ struct Config
 	enum {HELP, PALETTE, SAY, LIST, NOTHING} action;
 	enum {LEFT, RIGHT} align = LEFT;
 	bool mirror = false;
-	int bg = 7, fg = 0;
+	int bg = 39, fg = -1;
 	int x = 30, y = 9;
 	int width = -1;
 	std::wstring text;

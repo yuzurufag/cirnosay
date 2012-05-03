@@ -13,20 +13,20 @@ cirnosay: ${OBJ}
 clean:
 	rm -f cirnosay ${OBJ} config.h
 
-# find -iname '*.cpp' -exec $CXX -MM {} \;
-utils.o: utils.cpp utils.h
-text.o: canvas/text.cpp canvas/text.h canvas/canvas.h canvas/../char.h
-compose.o: canvas/compose.cpp canvas/compose.h canvas/canvas.h \
+# for i in `find -iname '*.cpp'`;do echo -n $(dirname $i)/;$CXX -MM $i;done
+./utils.o: utils.cpp utils.h
+./canvas/text.o: canvas/text.cpp canvas/text.h canvas/canvas.h canvas/../char.h
+./canvas/compose.o: canvas/compose.cpp canvas/compose.h canvas/canvas.h \
  canvas/../char.h
-picture.o: canvas/picture.cpp canvas/picture.h canvas/canvas.h \
+./canvas/picture.o: canvas/picture.cpp canvas/picture.h canvas/canvas.h \
  canvas/../char.h canvas/../palette.h canvas/../picture.h
-border_simple.o: canvas/border_simple.cpp canvas/border_simple.h \
+./canvas/border_simple.o: canvas/border_simple.cpp canvas/border_simple.h \
  canvas/canvas.h canvas/../char.h
-palette.o: palette.cpp palette.h
-char.o: char.cpp char.h
-findfile.o: findfile.cpp findfile.h
-picture.o: picture.cpp picture.h palette.h
-cirnosay.o: cirnosay.cpp canvas/border_simple.h canvas/canvas.h \
+./palette.o: palette.cpp palette.h
+./char.o: char.cpp char.h
+./findfile.o: findfile.cpp findfile.h
+./picture.o: picture.cpp picture.h palette.h
+./cirnosay.o: cirnosay.cpp canvas/border_simple.h canvas/canvas.h \
  canvas/../char.h canvas/compose.h canvas/picture.h canvas/../palette.h \
  canvas/../picture.h canvas/text.h findfile.h out.h utils.h
-out.o: out.cpp out.h canvas/canvas.h canvas/../char.h
+./out.o: out.cpp out.h canvas/canvas.h canvas/../char.h

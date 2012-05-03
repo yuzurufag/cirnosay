@@ -9,18 +9,18 @@ namespace cirno_say
 		}
 		Char Compose::getChar(int x, int y)
 		{
-			int t = -1, b = -1;
+			int t = Char::TRANSPARENT, b = Char::TRANSPARENT;
 			for (auto i: canvas)
 			{
 				Char c = i.c->getChar(x - i.x, y - i.y);
-				if(t != -1 && b == -1)
+				if(t != Char::TRANSPARENT && b == Char::TRANSPARENT)
 				{
 					if(c.c == WCHAR_LOWER_HALF_BLOCK || c.c == WCHAR_FULL_BLOCK)
 						return Char::half_blocks(t, c.fg);
 					if(c.bg != -1)
 						return Char::half_blocks(t, c.bg);
 				}
-				else if(t == -1 && b != -1)
+				else if(t == Char::TRANSPARENT && b != Char::TRANSPARENT)
 				{
 					if(c.c == WCHAR_UPPER_HALF_BLOCK || c.c == WCHAR_FULL_BLOCK)
 						return Char::half_blocks(c.fg, b);
@@ -35,7 +35,7 @@ namespace cirno_say
 					;
 				else
 					return c;
-				if(t != -1 && b != -1)
+				if(t != Char::TRANSPARENT && b != Char::TRANSPARENT)
 					return Char::half_blocks(t, b);
 			}
 			return Char::half_blocks(t, b);

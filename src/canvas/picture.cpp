@@ -16,7 +16,7 @@ namespace cirno_say
 				x = picture.x() - 1 - x;
 			int c1 = picture.getPixel(x, y*2);
 			int c2 = picture.getPixel(x, y*2+1);
-			return Char::half_blocks(c1, c2);
+			return Char::half_blocks(c1!=-1? c1: Char::TRANSPARENT, c2!=-1? c2: Char::TRANSPARENT);
 		}
 		int Picture::x()
 		{

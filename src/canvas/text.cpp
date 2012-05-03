@@ -28,6 +28,8 @@ namespace cirno_say
 			setlocale(LC_ALL, "");
 			int bg = -1;
 			int fg = -1;
+			bool bold = false;
+			bool underline = false;
 			std::vector<std::vector<Char> > result;
 			std::vector<Char> line;
 			for(auto c = s.begin(); c < s.end(); c++)
@@ -39,9 +41,9 @@ namespace cirno_say
 				}
 				else if(*c == L'\t')
 				{
-					line.push_back({fg, bg, L' '});
+					line.push_back(Char(L' ', fg, bg));
 					while(line.size() % 8 != 0)
-						line.push_back({fg, bg, L' '});
+						line.push_back(Char(L' ', fg, bg));
 				}
 				else if(*c == L'\e')
 				{
@@ -59,9 +61,17 @@ namespace cirno_say
 								{
 									if(i == 0)
 									{
-										bg = -1;
-										fg = -1;
+										bg = fg = -1;
+										bold = underline = false;
 									}
+									else if(i == 1)
+										bold = true;
+									else if(i == 4)
+										underline = true;
+									else if(i == 22)
+										bold = false;
+									else if(i == 24)
+										underline = false;
 									else if(i >= 30 && i <= 37)
 										fg = i-30;
 									else if(i >= 90 && i <= 97)
@@ -101,7 +111,7 @@ namespace cirno_say
 				}
 				else
 				{
-					line.push_back({fg, bg, *c});
+					line.push_back(Char(*c, fg, bg, bold, underline));
 				}
 			}
 			if(line.size() != 0)
@@ -114,9 +124,9 @@ namespace cirno_say
 		Char Text::getChar(int x, int y)
 		{
 			if((y < 0) || ((size_t)y >= s.size()))
-				return Char::empty();
+				return Char();
 			if((x < 0) || ((size_t)x >= s[y].size()))
-				return Char::empty();
+				return Char();
 			return s[y][x];
 		}
 		int Text::x(){ return x_; }

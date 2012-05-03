@@ -9,8 +9,9 @@ namespace cirno_say
 		int BorderSimple::col(int x, int y)
 		{
 			int width = this->x();
+			int bg = this->bg!=-1? this->bg: Char::TRANSPARENT;
 			if(x < arrow_size && y < arrow_position)
-				return -1;
+				return Char::TRANSPARENT;
 			if(x < arrow_size && y == arrow_position)
 				return bg;
 			if(x < arrow_size+1 && x && y == arrow_position+1)
@@ -20,7 +21,7 @@ namespace cirno_say
 			if(x < arrow_size && x + arrow_position + 3 > y)
 				return bg;
 			if(x < arrow_size && x + arrow_position + 3 <= y)
-				return -1;
+				return Char::TRANSPARENT;
 			if((y == 1 || y == height*2-2) && x > arrow_size+1 )
 			{
 				if(x >= width-2)
@@ -33,7 +34,7 @@ namespace cirno_say
 			if(y >= 2 && y < height*2-2 && x == width-2)
 				return fg;
 			if((y == 0 || y == height*2-1) && (x == width-1 || x == arrow_size))
-				return -1;
+				return Char::TRANSPARENT;
 			return bg;
 		}
 		BorderSimple::BorderSimple(Canvas *canvas,int fg, int bg, bool mirror): canvas(*canvas)
@@ -54,7 +55,7 @@ namespace cirno_say
 			int width = this->x();
 			x = mirror? width-x-1: x;
 			if(x < 0 || x >= width || y < 0 || y >= height)
-				return Char::empty();
+				return Char();
 			if(x >= arrow_size + pad_x + 2 && x < width - pad_x - 2 &&
 				y >= 1 + pad_y && y < height - pad_y - 1)
 			{

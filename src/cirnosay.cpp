@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <iterator>
 
 #include "canvas/border_simple.h"
@@ -16,11 +17,12 @@
 
 struct Config
 {
+	static const int UNDEFINED = -1;
 	enum {HELP, PALETTE, SAY, LIST, NOTHING} action;
 	enum {LEFT, RIGHT} align = LEFT;
 	bool mirror = false;
 	int bg = 39, fg = -1;
-	int x = 30, y = 9;
+	int x = UNDEFINED, y = UNDEFINED;
 	int width = -1;
 	std::wstring text;
 	cirno_say::FindFile image_file = cirno_say::FindFile(DATA_DIR "/pictures/", "png", "Touhoudex_Chibi_Cirno");
@@ -134,6 +136,7 @@ Config configure(int argc, char **argv)
 			case 's':
 				READ_INT(config.x, 'x', "shift");
 				READ_INT(config.y,  0,  "shift");
+				ARG_ASSERT(config.x >= 0 && config.y >= 0, "shift");
 				break;
 			case 'w':
 				READ_INT(config.width, 0, "width");
@@ -164,7 +167,26 @@ Config configure(int argc, char **argv)
 		#undef READ_INT
 	}
 
-	if (optind < argc)
+	if(config.x == Config::UNDEFINED)
+	{
+		std::ifstream defaults(DATA_DIR "/defaults", std::ifstream::in);
+		std::string value;
+		int x, y;
+		while(true)
+		{
+			defaults >> value >> x >> y;
+			if(!defaults.good())
+				break;
+			if(value == config.image_file.get_value())
+			{
+				config.x = x;
+				config.y = y;
+				break;
+			}
+		}
+	}
+
+	if(optind < argc)
 		config.text = cirno_say::concat_cstrings(argv + optind);
 	else
 		config.text = cirno_say::read_stdin();
@@ -174,14 +196,20 @@ Config configure(int argc, char **argv)
 	return config;
 }
 
-void say(const Config &config)
+void say(Config config)
 {
 	using namespace cirno_say;
-	Palette palette(config.palette_file.getValue());
-	canvas::Picture picture(config.image_file.getValue(), palette, config.mirror);
+	Palette palette(config.palette_file.get_filename());
+	canvas::Picture picture(config.image_file.get_filename(), palette, config.mirror);
 	canvas::Text text_canvas = canvas::Text::from_wstring(config.text);
 	canvas::BorderSimple border(&text_canvas, config.fg, config.bg, config.align);
 	canvas::Compose result;
+
+	if(config.x == Config::UNDEFINED)
+	{
+		config.x = picture.x() - 2;
+		config.y = picture.y() / 2 - 3;
+	}
 
 	if(config.align == Config::LEFT)
 	{

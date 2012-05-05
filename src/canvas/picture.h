@@ -14,6 +14,7 @@ namespace cirno_say
 		{
 			bool mirror;
 			cirno_say::Picture picture;
+			int x_, y_;
 			public:
 			Picture(std::string file_name, const Palette &palette, bool mirror);
 			Char getChar(int x, int y);

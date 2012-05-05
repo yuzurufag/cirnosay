@@ -9,6 +9,8 @@ namespace cirno_say
 		Picture::Picture(std::string file_name, const Palette &palette, bool mirror):picture(file_name, palette)
 		{
 			this->mirror = mirror;
+			x_ = -1;
+			y_ = -1;
 		}
 		Char Picture::getChar(int x, int y)
 		{
@@ -28,9 +30,11 @@ namespace cirno_say
 		}
 		void Picture::setMaxX(int x)
 		{
+			x_ = x;
 		}
 		void Picture::setMaxY(int y)
 		{
+			y_ = y;
 		}
 	}
 }

@@ -23,11 +23,18 @@ namespace cirno_say
 		else
 			result = path + "/" + value + extension;
 		if(std::ifstream (result))
-			this->value = result;
+		{
+			this->value = value;
+			filename = result;
+		}
 		else
 			throw 0;
 	}
-	std::string FindFile::getValue() const
+	std::string FindFile::get_filename() const
+	{
+		return filename;
+	}
+	std::string FindFile::get_value() const
 	{
 		return value;
 	}

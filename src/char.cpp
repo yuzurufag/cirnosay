@@ -13,19 +13,26 @@ namespace cirno_say
 
 	Char Char::half_blocks(int t, int b)
 	{
-		switch(((t == DEFAULT)?0:(t == TRANSPARENT)?3:6) + ((b == DEFAULT)?0:(b == TRANSPARENT)?1:2))
+		switch(t)
 		{
-			case 0: return Char(WCHAR_FULL_BLOCK,       -1, -1);
-			case 1: return Char(WCHAR_UPPER_HALF_BLOCK, -1, -1);
-			case 2: return Char(WCHAR_UPPER_HALF_BLOCK, -1, b );
-
-			case 3: return Char(WCHAR_LOWER_HALF_BLOCK, -1, -1);
-			case 4: return Char(L' ',                   -1, -1);
-			case 5: return Char(WCHAR_LOWER_HALF_BLOCK, b,  -1);
-
-			case 6: return Char(WCHAR_LOWER_HALF_BLOCK, -1, t );
-			case 7: return Char(WCHAR_UPPER_HALF_BLOCK, t,  -1);
-			case 8: return Char(WCHAR_UPPER_HALF_BLOCK, t,  b );
+			case DEFAULT: switch(b)
+			{
+				case DEFAULT:     return Char(WCHAR_FULL_BLOCK,       -1, -1);
+				case TRANSPARENT: return Char(WCHAR_UPPER_HALF_BLOCK, -1, -1);
+				default:          return Char(WCHAR_UPPER_HALF_BLOCK, -1, b );
+			}
+			case TRANSPARENT: switch(b)
+			{
+				case DEFAULT:     return Char(WCHAR_LOWER_HALF_BLOCK, -1, -1);
+				case TRANSPARENT: return Char(L' ',                   -1, -1);
+				default:          return Char(WCHAR_LOWER_HALF_BLOCK, b,  -1);
+			}
+			default: switch(b)
+			{
+				case DEFAULT:     return Char(WCHAR_LOWER_HALF_BLOCK, -1, t );
+				case TRANSPARENT: return Char(WCHAR_UPPER_HALF_BLOCK, t,  -1);
+				default:          return Char(WCHAR_UPPER_HALF_BLOCK, t,  b );
+			}
 		}
 	}
 }

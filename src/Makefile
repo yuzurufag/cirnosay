@@ -2,7 +2,7 @@ include ../dirs.mk
 C_DATA_DIR:=\"$(subst ",\\",$(subst \\,\\\\,$(DATA_DIR)))\" #")
 
 LDFLAGS:=`pkg-config --libs imlib2`
-CXXFLAGS:=-O3 -g -std=c++11 -Wall -DDATA_DIR="${C_DATA_DIR}"
+CXXFLAGS:=-O3 -g -std=c++11 -Wall -Wextra -Werror -DDATA_DIR="${C_DATA_DIR}"
 
 CANVAS_OBJ:=canvas/border_simple.o canvas/compose.o canvas/picture.o canvas/text.o
 OBJ:=char.o cirnosay.o findfile.o out.o palette.o picture.o utils.o ${CANVAS_OBJ}

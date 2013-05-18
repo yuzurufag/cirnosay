@@ -9,6 +9,7 @@
 #include "canvas/compose.h"
 #include "canvas/picture.h"
 #include "canvas/text.h"
+#include "config.h"
 #include "findfile.h"
 #include "out.h"
 #include "palette.h"

@@ -9,13 +9,14 @@ namespace cirno_say
 {
 	class Palette
 	{
-		uint8_t pal_r[256];
-		uint8_t pal_g[256];
-		uint8_t pal_b[256];
-		std::map<uint32_t, int> cache;
+		size_t pal_size;
+		uint8_t *pal_r;
+		uint8_t *pal_g;
+		uint8_t *pal_b;
 	
 		public:
 		Palette(const std::string &file_name);
+		~Palette();
 		int color(int r, int g, int b, int a) const;
 	};
 }

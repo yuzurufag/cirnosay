@@ -4,7 +4,7 @@ link_directories(${IMLIB2_LIBRARY_DIRS})
 include_directories(${IMLIB2_INCLUDE_DIRS})
 link_libraries(${IMLIB2_LIBRARIES})
 
-add_definitions(-std=c++0x)
+add_definitions(-std=c++0x -O3 -Wall -Wextra)
 
 add_executable (cirnosay 
 	canvas/border_simple.cpp

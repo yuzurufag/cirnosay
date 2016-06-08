@@ -22,6 +22,7 @@ struct Config
 	enum {HELP, PALETTE, SAY, LIST, NOTHING} action;
 	enum {LEFT, RIGHT} align = LEFT;
 	bool mirror = false;
+	bool _24bit = false;
 	int bg = 39, fg = -1;
 	int x = UNDEFINED, y = UNDEFINED;
 	int width = -1;
@@ -59,6 +60,7 @@ void show_help()
 	"Usage: cirnosay [option...] [text]\n"
 	"  -i, --image <xxx>         use <xxx> as image\n"
 	"  -p, --palette <xxx>       use <xxx> as palette\n"
+	"  -2, --24bit               use 24-bit color\n"
 	"  -l, --left                align left\n"
 	"  -r, --right               align right\n"
 	"  -m, --mirror              flip image\n"
@@ -85,6 +87,7 @@ Config configure(int argc, char **argv)
 		static struct option long_options[] = {
 			{"image",          required_argument, 0, 'i'},
 			{"palette",        required_argument, 0, 'p'},
+			{"24bit",          no_argument,       0, '2'},
 			{"left",           no_argument,       0, 'l'},
 			{"right",          no_argument,       0, 'r'},
 			{"mirror",         no_argument,       0, 'm'},
@@ -97,7 +100,7 @@ Config configure(int argc, char **argv)
 			{"help",           no_argument,       0, 'h'},
 			{0, 0, 0, 0}
 		};
-		int c = getopt_long(argc, argv, "i:p:lrms:w:b:f:PLh", long_options, &option_index);
+		int c = getopt_long(argc, argv, "i:p:2lrms:w:b:f:PLh", long_options, &option_index);
 		if(c == -1)
 			break;
 		int i = 0;
@@ -131,6 +134,7 @@ Config configure(int argc, char **argv)
 				catch(...)
 					{ ARG_ASSERT(false, "palette"); }
 				break;
+			case '2': config._24bit = true;         break;
 			case 'l': config.align = Config::LEFT;  break;
 			case 'r': config.align = Config::RIGHT; break;
 			case 'm': config.mirror = true;         break;
@@ -200,7 +204,11 @@ Config configure(int argc, char **argv)
 void say(Config config)
 {
 	using namespace cirno_say;
-	Palette palette(config.palette_file.get_filename());
+	Palette palette;
+	if(config._24bit)
+		palette = Palette {"", true};
+	else
+		palette = Palette {config.palette_file.get_filename(), false};
 	canvas::Picture picture(config.image_file.get_filename(), palette, config.mirror);
 	canvas::Text text_canvas = canvas::Text::from_wstring(config.text);
 	canvas::BorderSimple border(&text_canvas, config.fg, config.bg, config.align);

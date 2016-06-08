@@ -1,4 +1,5 @@
 #pragma once
+#include "color.h"
 
 namespace cirno_say
 {
@@ -8,16 +9,17 @@ namespace cirno_say
 
 	struct Char
 	{
-		static const int DEFAULT = -1;
-		static const int TRANSPARENT = -2;
-
 		wchar_t c;
-		int fg;
-		int bg;
+		Color fg;
+		Color bg;
 		bool bold;
 		bool underline;
 
-		Char(wchar_t c = ' ', int fg = DEFAULT, int bg = DEFAULT, bool bold = false, bool underline = false);
+		Char(wchar_t c = ' ',
+		     Color fg = color::DEFAULT,
+		     Color bg = color::DEFAULT,
+		     bool bold = false,
+		     bool underline = false);
 		static Char half_blocks(int t, int b);
 	};
 }

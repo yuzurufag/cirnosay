@@ -50,11 +50,19 @@ namespace cirno_say
 				result.push_back(40 + bg);
 			else if(bg < 16)
 				result.push_back(100 - 8 + bg);
-			else
+			else if (bg < 256)
 			{
 				result.push_back(48);
 				result.push_back(5);
 				result.push_back(bg);
+			}
+			else
+			{
+				result.push_back(48);
+				result.push_back(2);
+				result.push_back((bg-256) >> 16 & 0xFF);
+				result.push_back((bg-256) >>  8 & 0xFF);
+				result.push_back((bg-256) >>  0 & 0xFF);
 			}
 		}
 
@@ -64,11 +72,19 @@ namespace cirno_say
 				result.push_back(30 + fg);
 			else if(fg < 16)
 				result.push_back(90 - 8 + fg);
-			else
+			else if (fg < 256)
 			{
 				result.push_back(38);
 				result.push_back(5);
 				result.push_back(fg);
+			}
+			else
+			{
+				result.push_back(38);
+				result.push_back(2);
+				result.push_back((fg-256) >> 16 & 0xFF);
+				result.push_back((fg-256) >>  8 & 0xFF);
+				result.push_back((fg-256) >>  0 & 0xFF);
 			}
 		}
 
@@ -112,19 +128,19 @@ namespace cirno_say
 	{
 		if(c.c == WCHAR_LOWER_HALF_BLOCK || c.c == WCHAR_UPPER_HALF_BLOCK)
 		{
-			c.bg = c.bg == -1? Char::TRANSPARENT: c.bg;
-			c.fg = c.fg == -1? Char::DEFAULT: c.fg;
+			c.bg = c.bg == -1? color::TRANSPARENT: c.bg;
+			c.fg = c.fg == -1? color::DEFAULT: c.fg;
 			int t = c.c == WCHAR_LOWER_HALF_BLOCK? c.bg: c.fg;
 			int b = c.c == WCHAR_LOWER_HALF_BLOCK? c.fg: c.bg;
 			int td = t>=0? t: -1;
 			int bd = b>=0? b: -1;
-			if(t == Char::TRANSPARENT)
+			if(t == color::TRANSPARENT)
 				put_raw(-1, bd, c.bold, c.underline, WCHAR_LOWER_HALF_BLOCK);
-			else if(b == Char::TRANSPARENT)
+			else if(b == color::TRANSPARENT)
 				put_raw(-1, td, c.bold, c.underline, WCHAR_UPPER_HALF_BLOCK);
-			else if(t == Char::DEFAULT)
+			else if(t == color::DEFAULT)
 				put_raw(bd, -1, c.bold, c.underline, WCHAR_UPPER_HALF_BLOCK);
-			else if(b == Char::DEFAULT)
+			else if(b == color::DEFAULT)
 				put_raw(td, -1, c.bold, c.underline, WCHAR_LOWER_HALF_BLOCK);
 
 			else if(b == t && bg_ == b)

@@ -13,6 +13,7 @@ namespace cirno_say
 
 	Char Char::half_blocks(int t, int b)
 	{
+		using namespace color;
 		switch(t)
 		{
 			case DEFAULT: switch(b)

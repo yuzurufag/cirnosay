@@ -7,6 +7,24 @@
 
 #include "text.h"
 
+struct XtermMode {
+	enum What {
+		bg,
+		fg
+	} what;
+	enum Mode {
+		none,
+		start,
+		color256,
+		color24_r,
+		color24_g,
+		color24_b,
+	} mode;
+
+	XtermMode(What what = bg, Mode mode = none) : what(what), mode(mode)
+	{}
+};
+
 namespace cirno_say
 {
 	namespace canvas
@@ -28,6 +46,7 @@ namespace cirno_say
 			setlocale(LC_ALL, "");
 			int bg = -1;
 			int fg = -1;
+			int color = 0;
 			bool bold = false;
 			bool underline = false;
 			std::vector<std::vector<Char> > result;
@@ -51,14 +70,14 @@ namespace cirno_say
 					if(*c == L'[')
 					{
 						int i = 0;
-						int xterm_mode = 0;
+						XtermMode xterm_mode;
 						do
 						{
 							c++;
 							if(*c == L'm' || *c == L';')
 							{
-								if(xterm_mode == 0)
-								{
+								switch (xterm_mode.mode) {
+								case XtermMode::none:
 									if(i == 0)
 									{
 										bg = fg = -1;
@@ -81,24 +100,43 @@ namespace cirno_say
 									else if(i >= 100 && i <= 107)
 										bg = i-100+8;
 									else if(i == 38)
-										xterm_mode = 1;
+										xterm_mode = XtermMode(
+												XtermMode::fg,
+												XtermMode::start);
 									else if(i == 48)
-										xterm_mode = 2;
-								}
-								else
-								{
-									if(xterm_mode == 1 && i == 5)
-										xterm_mode = 3;
-									else if(xterm_mode == 2 && i == 5)
-										xterm_mode = 4;
-									else if(xterm_mode == 3)
-									{
-										fg = i; xterm_mode = 0;
-									}
-									else if(xterm_mode == 4)
-									{
-										bg = i; xterm_mode = 0;
-									}
+										xterm_mode = XtermMode(
+												XtermMode::bg,
+												XtermMode::start);
+									break;
+								case XtermMode::start:
+									if(i == 5)
+										xterm_mode.mode = XtermMode::color256;
+									else if(i == 2)
+										xterm_mode.mode = XtermMode::color24_r;
+									break;
+								case XtermMode::color256:
+									if (xterm_mode.what == XtermMode::fg)
+										fg = i;
+									else
+										bg = i;
+									xterm_mode = XtermMode();
+									break;
+								case XtermMode::color24_r:
+									color = i & 0xff;
+									xterm_mode.mode = XtermMode::color24_g;
+									break;
+								case XtermMode::color24_g:
+									color = color*256 | (i&0xff);
+									xterm_mode.mode = XtermMode::color24_b;
+									break;
+								case XtermMode::color24_b:
+									color = color*256 | (i&0xff);
+									xterm_mode.mode = XtermMode::none;
+									if (xterm_mode.what == XtermMode::fg)
+										fg = color;
+									else
+										bg = color;
+									break;
 								}
 								i = 0;
 							}

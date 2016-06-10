@@ -2,84 +2,89 @@
 
 #include <algorithm>
 
-namespace cirno_say
+namespace cirno_say { namespace canvas {
+
+int BorderSimple::col(int x, int y)
 {
-	namespace canvas
+	int width = this->x();
+	int bg = this->bg != -1 ? this->bg : color::TRANSPARENT;
+	if (x < arrow_size && y < arrow_position)
+		return color::TRANSPARENT;
+	if (x < arrow_size && y == arrow_position)
+		return bg;
+	if (x < arrow_size + 1 && x && y == arrow_position + 1)
+		return fg;
+	if (x < arrow_size + 1 && x && x + arrow_position == y)
+		return fg;
+	if (x < arrow_size && x + arrow_position + 3 > y)
+		return bg;
+	if (x < arrow_size && x + arrow_position + 3 <= y)
+		return color::TRANSPARENT;
+	if ((y == 1 || y == height * 2 - 2) && x > arrow_size + 1)
 	{
-		int BorderSimple::col(int x, int y)
-		{
-			int width = this->x();
-			int bg = this->bg!=-1? this->bg: color::TRANSPARENT;
-			if(x < arrow_size && y < arrow_position)
-				return color::TRANSPARENT;
-			if(x < arrow_size && y == arrow_position)
-				return bg;
-			if(x < arrow_size+1 && x && y == arrow_position+1)
-				return fg;
-			if(x < arrow_size+1 && x && x + arrow_position == y)
-				return fg;
-			if(x < arrow_size && x + arrow_position + 3 > y)
-				return bg;
-			if(x < arrow_size && x + arrow_position + 3 <= y)
-				return color::TRANSPARENT;
-			if((y == 1 || y == height*2-2) && x > arrow_size+1 )
-			{
-				if(x >= width-2)
-					return bg;
-				return fg;
-			}
-			if(y >= 2 && y < height*2-2 && x == arrow_size+1 &&
-				(y > arrow_position + arrow_size || y <= arrow_position ))
-				return fg;
-			if(y >= 2 && y < height*2-2 && x == width-2)
-				return fg;
-			if((y == 0 || y == height*2-1) && (x == width-1 || x == arrow_size))
-				return color::TRANSPARENT;
+		if (x >= width - 2)
 			return bg;
-		}
-		BorderSimple::BorderSimple(Canvas *canvas,int fg, int bg, bool mirror): canvas(*canvas)
-		{
-			this->fg = fg;
-			this->bg = bg;
-			this->pad_x = 2;
-			this->pad_y = 1;
-			this->arrow_size = std::min(6, canvas->y()+2);
-			this->arrow_position = std::min(4, canvas->y() + 1);
-			this->mirror = mirror;
-
-			this->width = canvas->x() + 2*pad_x + arrow_size + 4;
-			this->height = canvas->y() + 2 + 2*pad_y;
-		}
-		Char BorderSimple::getChar(int x, int y)
-		{
-			int width = this->x();
-			x = mirror? width-x-1: x;
-			if(x < 0 || x >= width || y < 0 || y >= height)
-				return Char();
-			if(x >= arrow_size + pad_x + 2 && x < width - pad_x - 2 &&
-				y >= 1 + pad_y && y < height - pad_y - 1)
-			{
-				if(mirror)
-					x = width - x - 1 + arrow_size;	
-				Char result = canvas.getChar(x - arrow_size - pad_x - 2, y - pad_y - 1);
-				result.fg = result.fg==-1 ? fg : result.fg;
-				result.bg = result.bg==-1 ? bg : result.bg;
-				return result;
-			}
-			return Char::half_blocks(col(x, y*2), col(x, y*2+1));
-		}
-		int BorderSimple::x(){ return (max_width != -1 && width>max_width)?max_width:width; }
-		int BorderSimple::y(){ return height; }
-		void BorderSimple::setMaxX(int x)
-		{
-			max_width = x;
-			canvas.setMaxX(x - 2*pad_x - arrow_size + 4);
-
-			this->arrow_size = std::min(6, canvas.y()+2);
-			this->arrow_position = std::min(4, canvas.y() + 1);
-
-			this->width = canvas.x() + 2*pad_x + arrow_size + 4;
-			this->height = canvas.y() + 2 + 2*pad_y;
-		}
+		return fg;
 	}
+	if (y >= 2 && y < height * 2 - 2 && x == arrow_size + 1 &&
+	    (y > arrow_position + arrow_size || y <= arrow_position))
+		return fg;
+	if (y >= 2 && y < height * 2 - 2 && x == width - 2)
+		return fg;
+	if ((y == 0 || y == height * 2 - 1) && (x == width - 1 || x == arrow_size))
+		return color::TRANSPARENT;
+	return bg;
 }
+BorderSimple::BorderSimple(Canvas *canvas, int fg, int bg, bool mirror)
+: canvas(*canvas)
+{
+	this->fg = fg;
+	this->bg = bg;
+	this->pad_x = 2;
+	this->pad_y = 1;
+	this->arrow_size = std::min(6, canvas->y() + 2);
+	this->arrow_position = std::min(4, canvas->y() + 1);
+	this->mirror = mirror;
+
+	this->width = canvas->x() + 2 * pad_x + arrow_size + 4;
+	this->height = canvas->y() + 2 + 2 * pad_y;
+}
+Char BorderSimple::getChar(int x, int y)
+{
+	int width = this->x();
+	x = mirror ? width - x - 1 : x;
+	if (x < 0 || x >= width || y < 0 || y >= height)
+		return Char();
+	if (x >= arrow_size + pad_x + 2 && x < width - pad_x - 2 &&
+	    y >= 1 + pad_y && y < height - pad_y - 1)
+	{
+		if (mirror)
+			x = width - x - 1 + arrow_size;
+		Char result = canvas.getChar(x - arrow_size - pad_x - 2, y - pad_y - 1);
+		result.fg = result.fg == -1 ? fg : result.fg;
+		result.bg = result.bg == -1 ? bg : result.bg;
+		return result;
+	}
+	return Char::half_blocks(col(x, y * 2), col(x, y * 2 + 1));
+}
+int BorderSimple::x()
+{
+	return (max_width != -1 && width > max_width) ? max_width : width;
+}
+int BorderSimple::y()
+{
+	return height;
+}
+void BorderSimple::setMaxX(int x)
+{
+	max_width = x;
+	canvas.setMaxX(x - 2 * pad_x - arrow_size + 4);
+
+	this->arrow_size = std::min(6, canvas.y() + 2);
+	this->arrow_position = std::min(4, canvas.y() + 1);
+
+	this->width = canvas.x() + 2 * pad_x + arrow_size + 4;
+	this->height = canvas.y() + 2 + 2 * pad_y;
+}
+
+} }

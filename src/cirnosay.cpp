@@ -31,7 +31,8 @@ struct Config
 	} align = LEFT;
 	bool mirror = false;
 	bool _24bit = false;
-	int bg = 39, fg = -1;
+	int bg = cirno_say::color::AUTO;
+	int fg = cirno_say::color::DEFAULT;
 	int x = UNDEFINED, y = UNDEFINED;
 	int width = -1;
 	std::wstring text;
@@ -81,6 +82,13 @@ void show_help()
 	"  -L, --list                list available images/palettes and exit\n"
 	"  -P, --show-palette        display palette and exit\n"
 	"  -h, --help                display this help and exit\n"
+	"Colors:\n"
+	"  0..255   palette color\n"
+	"  #RRGGBB  hex notation\n"
+	"  Special colors:\n"
+	"    a, auto         use color based on the image\n"
+	"    d, default      default foreground color\n"
+	"    t, transparent  default background color\n"
 	;
 }
 
@@ -139,6 +147,13 @@ Config configure(int argc, char **argv)
 					x = x * 10 + s * (optarg[i] - '0'); \
 				ARG_ASSERT(optarg[i++] == end, name); \
 			} while (0)
+		#define READ_COLOR(x, name) \
+			do \
+			{ \
+				using namespace cirno_say; \
+				x = parseColor(optarg); \
+				ARG_ASSERT(x != color::INVALID, name); \
+			} while (0)
 		switch (c)
 		{
 		case 'i':
@@ -175,12 +190,11 @@ Config configure(int argc, char **argv)
 			ARG_ASSERT(config.width >= -1, "width");
 			break;
 		case 'b':
-			READ_INT(config.bg, 0, "background");
-			ARG_ASSERT(config.bg >= -1 && config.bg < 256, "background");
+			READ_COLOR(config.bg, "background");
 			break;
 		case 'f':
-			READ_INT(config.fg, 0, "foreground");
-			ARG_ASSERT(config.fg >= -1 && config.fg < 256, "foreground");
+			READ_COLOR(config.fg, "foreground");
+			ARG_ASSERT(config.bg != cirno_say::color::AUTO, "foreground");
 			break;
 		case 'L': config.action = Config::LIST; return config;
 		case 'P': config.action = Config::PALETTE; return config;
@@ -223,14 +237,17 @@ Config configure(int argc, char **argv)
 void say(Config config)
 {
 	using namespace cirno_say;
+	bool calculate_dominant = config.bg == color::AUTO && config.text.size();
 	Palette palette;
 	if (config._24bit)
 		palette = Palette{"", true};
 	else
 		palette = Palette{config.palette_file.get_filename(), false};
 	canvas::Picture picture(config.image_file.get_filename(), palette,
-	                        config.mirror);
+	                        config.mirror, calculate_dominant);
 	canvas::Text text_canvas = canvas::Text::from_wstring(config.text);
+	if (calculate_dominant)
+		config.bg = picture.dominant();
 	canvas::BorderSimple border(&text_canvas, config.fg, config.bg,
 	                            config.align);
 	canvas::Compose result;

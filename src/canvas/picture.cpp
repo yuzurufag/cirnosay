@@ -2,8 +2,9 @@
 
 namespace cirno_say { namespace canvas {
 
-Picture::Picture(std::string file_name, const Palette &palette, bool mirror)
-: picture(file_name, palette)
+Picture::Picture(std::string file_name, const Palette &palette,
+                 bool mirror, bool calc_dominant)
+: picture(file_name, palette, calc_dominant)
 {
 	this->mirror = mirror;
 	x_ = -1;
@@ -33,6 +34,10 @@ void Picture::setMaxX(int x)
 void Picture::setMaxY(int y)
 {
 	y_ = y;
+}
+Color Picture::dominant() const
+{
+	return picture.dominant;
 }
 
 } }

@@ -13,10 +13,12 @@ add_executable (cirnosay
 	canvas/text.cpp
 	char.cpp
 	cirnosay.cpp
+	color.cpp
 	findfile.cpp
 	out.cpp
 	palette.cpp
 	picture.cpp
+	rgba.cpp
 	utils.cpp
 	)
 

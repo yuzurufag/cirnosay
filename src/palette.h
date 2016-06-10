@@ -5,6 +5,7 @@
 #include <string>
 
 #include "color.h"
+#include "rgba.h"
 
 namespace cirno_say {
 
@@ -16,6 +17,7 @@ public:
 	Palette &operator=(const Palette &);
 	~Palette();
 	Color color(int r, int g, int b, int a) const;
+	Color color(Rgba c) const;
 private:
 	bool _24bit;
 	size_t pal_size;

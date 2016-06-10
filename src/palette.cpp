@@ -78,5 +78,9 @@ Color Palette::color(int r, int g, int b, int a) const
 
 	return best;
 }
+Color Palette::color(Rgba c) const
+{
+    return color(c.r, c.g, c.b, c.a);
+}
 
 }
